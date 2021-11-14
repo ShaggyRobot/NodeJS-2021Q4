@@ -1,8 +1,10 @@
 const fs = require('fs');
+const { MyRead } = require('./myRead');
 const { Caesar } = require('./Ciphers/caesar');
 const { Rot8 } = require('./Ciphers/rot-8');
 const { Atbash } = require('./Ciphers/atbash');
 const { pipeline } = require('stream');
+const {MyWrite} = require('./myWrite')
 const process = require('process');
 
 const ciphers = {
@@ -77,7 +79,7 @@ async function parseArgv(argv) {
     ioObj.read = await new Promise((resolve) => {
       try {
         fs.accessSync(argvArr[argvArr.indexOf(inputArg) + 1]);
-        resolve(fs.createReadStream(argvArr[argvArr.indexOf(inputArg) + 1]));
+        resolve(new MyRead(argvArr[argvArr.indexOf(inputArg) + 1]));
       } catch (err) {
         console.error(`Can't read file at "${argvArr[argvArr.indexOf(inputArg) + 1]}": [${err.message}].`);
         process.exit(1);
@@ -96,7 +98,7 @@ async function parseArgv(argv) {
           console.error(`Can't write to "${argvArr[argvArr.indexOf(outputArg) + 1]}", check if such file exists.`);
           process.exit(1);
         } else {
-          resolve(fs.createWriteStream(argvArr[argvArr.indexOf(outputArg) + 1], { flags: 'a+' }));
+          resolve(new MyWrite(argvArr[argvArr.indexOf(outputArg) + 1], { flags: 'a+' }));
         }
       });
     });
