@@ -14,16 +14,48 @@ const ciphers = {
 async function parseArgv(argv) {
   const ioObj = new Object();
   const argvArr = argv.slice(2);
+  let inputArg = '';
+  let outputArg = '';
+  let configArg = '';
 
-  // Checking for duplicate options
-  if (argvArr.filter((arg) => arg == ('-c' || '-i' || 'o')).length > 1) {
-    console.error(`No duplicate options allowed.`);
-    process.exit(1);
+  // Assigning options, checking for duplicate options
+  for (const arg of argvArr) {
+    switch (arg) {
+      case '--input':
+      case '-i':
+        if (inputArg != '') {
+          console.error('Duplicate input argument.');
+          process.exit(1);
+        } else {
+          inputArg = arg;
+          break;
+        }
+
+      case '--output':
+      case '-o':
+        if (outputArg != '') {
+          console.error('Duplicate output argument.');
+          process.exit(1);
+        } else {
+          outputArg = arg;
+          break;
+        }
+
+      case '--config':
+      case '-c':
+        if (configArg != '') {
+          console.error('Duplicate config argument.');
+          process.exit(1);
+        } else {
+          configArg = arg;
+          break;
+        }
+    }
   }
 
   // Validating config
-  if (argvArr.includes('-c')) {
-    for (const arg of argvArr[argvArr.indexOf('-c') + 1].split('-')) {
+  if (configArg && argvArr.slice(-1) != configArg) {
+    for (const arg of argvArr[argvArr.indexOf(configArg) + 1].split('-')) {
       if (!Object.keys(ciphers).includes(arg[0])) {
         console.error(
           arg[0] ? `Invalid option "${arg}" in config. Only "C", "R" or "A" expected.` : 'Empty option in config, expected "C", "R" or "A".'
@@ -33,7 +65,7 @@ async function parseArgv(argv) {
     }
     // Populating transforms array
     ioObj.transformArr = await new Promise((resolve) => {
-      resolve(argvArr[argvArr.indexOf('-c') + 1].split('-').map((cfg) => ciphers[cfg[0]](cfg[1])));
+      resolve(argvArr[argvArr.indexOf(configArg) + 1].split('-').map((cfg) => ciphers[cfg[0]](cfg[1])));
     });
   } else {
     console.error('No config provided.');
@@ -41,13 +73,13 @@ async function parseArgv(argv) {
   }
 
   // Checking if input option provided and if file is readable.
-  if (argvArr.includes('-i')) {
+  if (inputArg) {
     ioObj.read = await new Promise((resolve) => {
       try {
-        fs.accessSync(argvArr[argvArr.indexOf('-i') + 1]);
-        resolve(fs.createReadStream(argvArr[argvArr.indexOf('-i') + 1]));
+        fs.accessSync(argvArr[argvArr.indexOf(inputArg) + 1]);
+        resolve(fs.createReadStream(argvArr[argvArr.indexOf(inputArg) + 1]));
       } catch (err) {
-        console.error(`Can't read file at "${argvArr[argvArr.indexOf('-i') + 1]}": [${err.message}].`);
+        console.error(`Can't read file at "${argvArr[argvArr.indexOf(inputArg) + 1]}": [${err.message}].`);
         process.exit(1);
       }
     });
@@ -57,14 +89,14 @@ async function parseArgv(argv) {
   }
 
   // Checking if output option is provided and writable file exists at provided path.
-  if (argvArr.includes('-o')) {
+  if (outputArg) {
     ioObj.write = await new Promise((resolve) => {
-      fs.access(argvArr[argvArr.indexOf('-o') + 1], (err) => {
+      fs.access(argvArr[argvArr.indexOf(outputArg) + 1], (err) => {
         if (err) {
-          console.error(`Can't write to "${argvArr[argvArr.indexOf('-o') + 1]}", check if such file exists.`);
+          console.error(`Can't write to "${argvArr[argvArr.indexOf(outputArg) + 1]}", check if such file exists.`);
           process.exit(1);
         } else {
-          resolve(fs.createWriteStream(argvArr[argvArr.indexOf('-o') + 1], { flags: 'a+' }));
+          resolve(fs.createWriteStream(argvArr[argvArr.indexOf(outputArg) + 1], { flags: 'a+' }));
         }
       });
     });
@@ -82,4 +114,3 @@ parseArgv(process.argv).then((arg) => {
     } else console.log('Beep!');
   });
 });
-
