@@ -1,5 +1,5 @@
 const { Transform } = require('stream');
-const { reverseStr } = require('./reverse.js');
+const { reverseStr } = require('./reverse');
 
 class Atbash extends Transform {
   constructor(opt) {
@@ -9,6 +9,7 @@ class Atbash extends Transform {
       process.exit(1);
     }
   }
+
   _transform(chunk, enc, callback) {
     this.push(reverseStr(chunk.toString()));
     callback();

@@ -19,7 +19,7 @@ class MyWrite extends Writable {
   }
 
   _write(chunk, encoding, callback) {
-    fs.write(this.fd, chunk + '\n', callback);
+    fs.write(this.fd, `${chunk}\n`, callback);
   }
 
   _destroy(err, callback) {

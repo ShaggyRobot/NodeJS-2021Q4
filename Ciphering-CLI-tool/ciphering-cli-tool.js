@@ -1,11 +1,11 @@
 const fs = require('fs');
+const { pipeline } = require('stream');
+const process = require('process');
 const { MyRead } = require('./myRead');
 const { Caesar } = require('./Ciphers/caesar');
 const { Rot8 } = require('./Ciphers/rot-8');
 const { Atbash } = require('./Ciphers/atbash');
-const { pipeline } = require('stream');
-const {MyWrite} = require('./myWrite')
-const process = require('process');
+const { MyWrite } = require('./myWrite');
 
 const ciphers = {
   C: (a) => new Caesar(a),
@@ -14,7 +14,7 @@ const ciphers = {
 };
 
 async function parseArgv(argv) {
-  const ioObj = new Object();
+  const ioObj = {};
   const argvArr = argv.slice(2);
   let inputArg = '';
   let outputArg = '';
@@ -25,49 +25,57 @@ async function parseArgv(argv) {
     switch (arg) {
       case '--input':
       case '-i':
-        if (inputArg != '') {
+        if (inputArg !== '') {
           console.error('Duplicate input argument.');
           process.exit(1);
         } else {
           inputArg = arg;
           break;
         }
+        break;
 
       case '--output':
       case '-o':
-        if (outputArg != '') {
+        if (outputArg !== '') {
           console.error('Duplicate output argument.');
           process.exit(1);
         } else {
           outputArg = arg;
           break;
         }
+        break;
 
       case '--config':
       case '-c':
-        if (configArg != '') {
+        if (configArg !== '') {
           console.error('Duplicate config argument.');
           process.exit(1);
         } else {
           configArg = arg;
           break;
         }
+        break;
+      default:
     }
   }
 
   // Validating config
-  if (configArg && argvArr.slice(-1) != configArg) {
+  if (configArg && argvArr.slice(-1) !== configArg) {
     for (const arg of argvArr[argvArr.indexOf(configArg) + 1].split('-')) {
       if (!Object.keys(ciphers).includes(arg[0])) {
         console.error(
-          arg[0] ? `Invalid option "${arg}" in config. Only "C", "R" or "A" expected.` : 'Empty option in config, expected "C", "R" or "A".'
+          arg[0]
+            ? `Invalid option "${arg}" in config. Only "C", "R" or "A" expected.`
+            : 'Empty option in config, expected "C", "R" or "A".'
         );
         process.exit(1);
       }
     }
     // Populating transforms array
     ioObj.transformArr = await new Promise((resolve) => {
-      resolve(argvArr[argvArr.indexOf(configArg) + 1].split('-').map((cfg) => ciphers[cfg[0]](cfg[1])));
+      resolve(
+        argvArr[argvArr.indexOf(configArg) + 1].split('-').map((cfg) => ciphers[cfg[0]](cfg[1]))
+      );
     });
   } else {
     console.error('No config provided.');
@@ -81,7 +89,9 @@ async function parseArgv(argv) {
         fs.accessSync(argvArr[argvArr.indexOf(inputArg) + 1]);
         resolve(new MyRead(argvArr[argvArr.indexOf(inputArg) + 1]));
       } catch (err) {
-        console.error(`Can't read file at "${argvArr[argvArr.indexOf(inputArg) + 1]}": [${err.message}].`);
+        console.error(
+          `Can't read file at "${argvArr[argvArr.indexOf(inputArg) + 1]}": [${err.message}].`
+        );
         process.exit(1);
       }
     });
@@ -95,7 +105,11 @@ async function parseArgv(argv) {
     ioObj.write = await new Promise((resolve) => {
       fs.access(argvArr[argvArr.indexOf(outputArg) + 1], (err) => {
         if (err) {
-          console.error(`Can't write to "${argvArr[argvArr.indexOf(outputArg) + 1]}", check if such file exists.`);
+          console.error(
+            `Can't write to "${
+              argvArr[argvArr.indexOf(outputArg) + 1]
+            }", check if such file exists.`
+          );
           process.exit(1);
         } else {
           resolve(new MyWrite(argvArr[argvArr.indexOf(outputArg) + 1], { flags: 'a+' }));

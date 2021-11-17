@@ -4,7 +4,9 @@ function reverseChar(char) {
   }
   const initShift = /[A-Z]/.test(char) ? 65 : 97;
   const relativePosition = char.charCodeAt(0) - initShift;
-  const reversedABC = [...Array(26).keys()].map((i) => String.fromCharCode(i + initShift)).reverse();
+  const reversedABC = [...Array(26).keys()]
+    .map((i) => String.fromCharCode(i + initShift))
+    .reverse();
   const reversedChar = reversedABC[relativePosition];
   return reversedChar;
 }
