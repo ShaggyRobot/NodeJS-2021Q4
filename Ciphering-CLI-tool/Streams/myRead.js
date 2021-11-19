@@ -1,5 +1,6 @@
 const { Readable } = require('stream');
 const fs = require('fs');
+const { InputError } = require('../Errors/input-error');
 
 class MyRead extends Readable {
   constructor(path) {
@@ -39,4 +40,13 @@ class MyRead extends Readable {
   }
 }
 
-module.exports = { MyRead };
+function getReadStream(path) {
+  if (!path) {
+    return process.stdin;
+  }
+  return new MyRead(path).on('error', (error) => {
+    throw new InputError(`Can't read file at "${path}": [${error.message}].`);
+  });
+}
+
+module.exports = { getReadStream };

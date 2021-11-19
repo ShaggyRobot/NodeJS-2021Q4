@@ -1,5 +1,6 @@
 const fs = require('fs');
 const { Writable } = require('stream');
+const { OutputError } = require('../Errors/output-error');
 
 class MyWrite extends Writable {
   constructor(path) {
@@ -19,7 +20,7 @@ class MyWrite extends Writable {
   }
 
   _write(chunk, encoding, callback) {
-    fs.write(this.fd, `${chunk}\n`, callback);
+    fs.write(this.fd, chunk, callback);
   }
 
   _destroy(err, callback) {
@@ -31,4 +32,13 @@ class MyWrite extends Writable {
   }
 }
 
-module.exports = { MyWrite };
+function getWriteStream(path) {
+  if (!path) {
+    return process.stdout;
+  }
+  return new MyWrite(path).on('error', (error) => {
+    throw new OutputError(`Can't write to "${path}": ${error.message}`);
+  });
+}
+
+module.exports = { getWriteStream };
