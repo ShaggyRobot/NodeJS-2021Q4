@@ -1,6 +1,7 @@
 const fs = require('fs');
 const { Writable } = require('stream');
 const { OutputError } = require('../Errors/output-error');
+const { errorHandler } = require('../Errors/error-handler');
 
 class MyWrite extends Writable {
   constructor(path) {
@@ -36,8 +37,13 @@ function getWriteStream(path) {
   if (!path) {
     return process.stdout;
   }
+  try {
+    fs.accessSync(path);
+  } catch (error) {
+    errorHandler(new OutputError(`Can't write to "${path}": ${error.message}`));
+  }
   return new MyWrite(path).on('error', (error) => {
-    throw new OutputError(`Can't write to "${path}": ${error.message}`);
+    errorHandler(new OutputError(`Can't write to "${path}": ${error.message}`));
   });
 }
 
