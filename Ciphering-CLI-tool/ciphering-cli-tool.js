@@ -3,7 +3,7 @@ const process = require('process');
 
 const { argvParser } = require('./Parsers/argv-parser');
 const { errorHandler } = require('./Errors/error-handler');
-const { getReadStream } = require('./Streams/myRead');
+const { getReadStream } = require('./Streams/getReadStream');
 const { getWriteStream } = require('./Streams/myWrite');
 const { getTransforms } = require('./Streams/transforms');
 
@@ -16,6 +16,8 @@ try {
   pipeline(read, ...transforms, write, (error) => {
     if (error) {
       errorHandler(error);
+    } else {
+      console.log('Beep!');
     }
   });
 } catch (error) {
